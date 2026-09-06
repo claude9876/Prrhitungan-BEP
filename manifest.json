@@ -1,0 +1,17 @@
+{
+  "name": "Kalkulator ROAS Marketplace",
+  "short_name": "ROAS Calc",
+  "description": "Kalkulator titik impas dan target ROAS untuk seller.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#F5F4EF",
+  "theme_color": "#0E5C4A",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "512x512",
+      "purpose": "any maskable"
+    }
+  ]
+}
