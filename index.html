@@ -1,231 +1,463 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Target ROAS</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        body { background-color: #f3f4f6; }
-        .mobile-container { max-width: 480px; margin: 0 auto; background-color: #ffffff; min-height: 100vh; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
-        .hide { display: none; }
-        /* Custom checkbox style */
-        input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: #3b82f6; cursor: pointer; }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kalkulator ROAS Marketplace</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#F5F4EF;
+    --surface:#FFFFFF;
+    --ink:#1C2321;
+    --ink-muted:#6B7370;
+    --line:#E4E0D6;
+    --accent:#0E5C4A;
+    --accent-soft:#E4EFEB;
+    --accent-warm:#A9702C;
+    --accent-warm-soft:#F4E9D7;
+    --danger:#9C3B3B;
+    --danger-soft:#F3E3E1;
+  }
+  * { box-sizing:border-box; }
+  body{ margin:0; background:var(--bg); color:var(--ink); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+  .display{ font-family:'Space Grotesk',-apple-system,sans-serif; }
+  .tnum{ font-variant-numeric:tabular-nums; }
+  .app{ max-width:440px; margin:0 auto; min-height:100vh; background:var(--surface); border-inline:1px solid var(--line); }
+  .hide{ display:none !important; }
+
+  .app-header{ display:flex; align-items:center; gap:.75rem; padding:1.1rem 1.25rem; border-bottom:1px solid var(--line); background:var(--surface); position:sticky; top:0; z-index:10; }
+  .back-icon{ width:1.15rem; height:1.15rem; color:var(--ink-muted); flex-shrink:0; }
+  .app-title{ font-size:1.05rem; font-weight:600; line-height:1.2; }
+  .app-subtitle{ font-size:.72rem; color:var(--ink-muted); margin-top:.15rem; }
+
+  .field{ display:flex; align-items:center; gap:.3rem; border-bottom:1.5px solid var(--line); padding:.4rem 0; transition:border-color .15s ease; }
+  .field:focus-within{ border-color:var(--accent); }
+  .field input{ flex:1; min-width:0; background:transparent; border:0; outline:0; font-size:.925rem; color:var(--ink); }
+  .field .unit{ font-size:.75rem; color:var(--ink-muted); white-space:nowrap; }
+  .field-label{ display:block; font-size:.72rem; color:var(--ink-muted); margin-bottom:.3rem; }
+
+  .section-label{ font-size:.72rem; font-weight:600; color:var(--ink-muted); margin-bottom:.55rem; }
+
+  .chip{ position:relative; display:inline-flex; align-items:center; gap:.3rem; border:1.5px solid var(--line); border-radius:999px; padding:.35rem .7rem; font-size:.74rem; color:var(--ink); cursor:pointer; user-select:none; transition:background-color .15s ease,color .15s ease,border-color .15s ease; }
+  .chip input{ position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+  .chip b{ font-weight:600; }
+  .chip:has(> input:checked){ background:var(--accent); border-color:var(--accent); color:#fff; }
+  .chip:has(> input:focus-visible){ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .btn-primary{ width:100%; background:var(--accent); color:#fff; font-weight:600; font-size:.925rem; padding:.8rem 1rem; border-radius:.7rem; border:0; cursor:pointer; transition:background-color .15s ease,opacity .15s ease; }
+  .btn-primary:hover{ background:#0a4a3c; }
+  .btn-primary:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .btn-primary.is-computing{ cursor:progress; }
+  @media (prefers-reduced-motion:no-preference){
+    .btn-primary.is-computing{ animation:pulse .9s ease-in-out infinite; }
+    .reveal{ animation:reveal .35s ease-out; }
+  }
+  @keyframes pulse{ 0%,100%{opacity:1;} 50%{opacity:.55;} }
+  @keyframes reveal{ from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:none;} }
+
+  #errorBanner{ background:var(--danger-soft); color:var(--danger); border:1px solid #E3C6C3; border-radius:.6rem; padding:.7rem .85rem; font-size:.82rem; line-height:1.4; }
+
+  .ledger .row{ display:flex; justify-content:space-between; gap:.75rem; padding:.35rem 0; font-size:.85rem; color:var(--ink-muted); }
+  .ledger .row.total{ border-top:1px solid var(--line); margin-top:.2rem; padding-top:.55rem; font-weight:600; color:var(--ink); }
+  .ledger .row.total.accent{ color:var(--accent); }
+  .negative{ color:var(--danger); }
+
+  .hero-pair{ display:grid; grid-template-columns:1fr 1fr; border:1px solid var(--line); border-radius:.85rem; overflow:hidden; }
+  .hero-cell{ padding:1rem .9rem; }
+  .hero-cell.floor{ border-right:1px solid var(--line); background:var(--danger-soft); }
+  .hero-cell.target{ background:var(--accent-warm-soft); }
+  .hero-label{ font-size:.68rem; color:var(--ink-muted); margin:0 0 .3rem; }
+  .hero-num{ font-size:1.5rem; font-weight:700; margin:0; color:var(--ink); }
+  .hero-cell.target .hero-num{ color:var(--accent-warm); }
+  .hero-sub{ font-size:.68rem; color:var(--ink-muted); margin:.3rem 0 0; }
+
+  table.sim{ width:100%; border-collapse:collapse; font-size:.78rem; }
+  table.sim thead th{ text-align:left; font-weight:500; color:var(--ink-muted); padding:.4rem .5rem; border-bottom:1px solid var(--line); }
+  table.sim tbody td{ padding:.55rem .5rem; border-bottom:1px solid var(--line); vertical-align:top; }
+  table.sim tbody tr:last-child td{ border-bottom:0; }
+  .margin-sub{ display:block; font-size:.65rem; color:var(--ink-muted); margin-top:.1rem; }
+
+  /* Panduan */
+  .icon-btn{ display:inline-flex; align-items:center; justify-content:center; width:2rem; height:2rem; border-radius:999px; border:0; background:transparent; color:var(--ink-muted); cursor:pointer; flex-shrink:0; transition:color .15s ease,background-color .15s ease; }
+  .icon-btn:hover{ color:var(--accent); background:var(--accent-soft); }
+  .icon-btn:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+  .icon-btn svg{ width:1.15rem; height:1.15rem; }
+
+  .sheet-backdrop{ position:fixed; inset:0; background:rgba(28,35,33,.45); display:flex; align-items:flex-end; justify-content:center; z-index:50; opacity:0; pointer-events:none; transition:opacity .25s ease; }
+  .sheet-backdrop.is-open{ opacity:1; pointer-events:auto; }
+
+  .sheet{ width:100%; max-width:440px; max-height:85vh; background:var(--surface); border-radius:1.25rem 1.25rem 0 0; border:1px solid var(--line); border-bottom:0; box-shadow:0 -10px 30px rgba(28,35,33,.14); display:flex; flex-direction:column; transform:translateY(100%); transition:transform .3s cubic-bezier(.32,.72,0,1); }
+  .sheet-backdrop.is-open .sheet{ transform:translateY(0); }
+  @media (prefers-reduced-motion:reduce){ .sheet, .sheet-backdrop{ transition:none; } }
+
+  .sheet-handle{ width:2.25rem; height:.25rem; border-radius:999px; background:var(--line); margin:.65rem auto 0; flex-shrink:0; }
+
+  .sheet-header{ display:flex; align-items:flex-start; gap:.75rem; padding:.85rem 1.25rem 1rem; border-bottom:1px solid var(--line); flex-shrink:0; }
+
+  .sheet-body{ padding:.25rem 1.25rem 1.5rem; overflow-y:auto; }
+
+  .guide-item{ border-bottom:1px solid var(--line); }
+  .guide-item:last-child{ border-bottom:0; }
+  .guide-item summary{ list-style:none; display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.9rem 0; cursor:pointer; font-size:.88rem; font-weight:600; color:var(--ink); }
+  .guide-item summary::-webkit-details-marker{ display:none; }
+  .guide-item summary .chevron{ width:1rem; height:1rem; color:var(--ink-muted); flex-shrink:0; transition:transform .2s ease; }
+  .guide-item[open] summary .chevron{ transform:rotate(180deg); }
+  .guide-item .guide-content{ padding:0 0 1.1rem; font-size:.83rem; line-height:1.6; color:var(--ink-muted); }
+
+  .guide-term{ display:flex; gap:.6rem; padding:.1rem 0; margin-bottom:.6rem; }
+  .guide-term:last-child{ margin-bottom:0; }
+  .guide-content b{ color:var(--ink); flex-shrink:0; }
+
+  .guide-steps{ margin:0; padding-left:0; list-style:none; counter-reset:step; }
+  .guide-steps li{ position:relative; padding:0 0 0 1.85rem; margin-bottom:.65rem; counter-increment:step; }
+  .guide-steps li::before{ content:counter(step); position:absolute; left:0; top:.05rem; width:1.35rem; height:1.35rem; border-radius:999px; background:var(--accent-soft); color:var(--accent); font-size:.68rem; font-weight:600; display:flex; align-items:center; justify-content:center; }
+  .guide-steps li:last-child{ margin-bottom:0; }
+
+  .guide-tip{ display:flex; gap:.55rem; align-items:flex-start; padding:.6rem .7rem; border-radius:.65rem; background:var(--accent-warm-soft); margin-bottom:.5rem; font-size:.82rem; color:var(--ink); line-height:1.5; }
+  .guide-tip:last-child{ margin-bottom:0; }
+  .guide-tip svg{ width:1rem; height:1rem; color:var(--accent-warm); flex-shrink:0; margin-top:.15rem; }
+</style>
 </head>
 <body>
-    <div class="mobile-container relative pb-10">
-        <!-- Header -->
-        <div class="bg-[#3b5998] text-white p-4 flex items-center shadow-md sticky top-0 z-10">
-            <svg class="w-6 h-6 mr-4 cursor-pointer" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
-            <h1 class="text-lg font-semibold">Target ROAS</h1>
+  <div class="app pb-10">
+    <header class="app-header">
+      <svg class="back-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+      <div>
+        <h1 class="app-title display">Kalkulator ROAS Marketplace</h1>
+        <p class="app-subtitle">Titik impas &amp; target ROAS per produk</p>
+      </div>
+      <button type="button" class="icon-btn ml-auto" onclick="bukaPanduan()" aria-haspopup="dialog" aria-controls="guideBackdrop" aria-label="Buka panduan penggunaan">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+      </button>
+    </header>
+
+    <div class="px-5 pt-5">
+      <div class="space-y-5">
+
+        <div>
+          <label class="field-label" for="namaProduk">Nama Produk</label>
+          <div class="field">
+            <input type="text" id="namaProduk" value="Vest outer">
+          </div>
         </div>
 
-        <div class="p-5">
-            <h2 class="text-xl font-bold mb-4 text-gray-800 text-center">Kalkulator ROAS Marketplace</h2>
-
-            <!-- Form Input -->
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">Nama Produk</label>
-                    <input type="text" id="namaProduk" value="Vest outer" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
-                </div>
-                <div class="grid grid-cols-2 gap-3">
-                    <div>
-                        <label class="block text-sm text-gray-600 mb-1">HPP / Modal (Rp)</label>
-                        <input type="number" id="hpp" value="30000" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-600 mb-1">Harga Jual (Rp)</label>
-                        <input type="number" id="hargaJual" value="60000" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
-                    </div>
-                </div>
-                
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">Biaya Admin Utama / Basic (%)</label>
-                    <input type="number" step="0.1" id="biayaAdmin" value="6.5" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
-                </div>
-
-                <!-- Bagian Biaya Opsional Baru -->
-                <div class="bg-blue-50 border border-blue-200 p-3 rounded-lg mt-2">
-                    <label class="block text-sm font-bold text-gray-800 mb-2">Program Opsional Platform (Centang jika ikut):</label>
-                    <div class="space-y-2 mb-3">
-                        <label class="flex items-center text-sm text-gray-700">
-                            <input type="checkbox" id="chkGratisOngkir" value="7.5" class="mr-3"> Gratis Ongkir Extra (7.50%)
-                        </label>
-                        <label class="flex items-center text-sm text-gray-700">
-                            <input type="checkbox" id="chkPromoExtra" value="4.5" class="mr-3"> Promo Extra (4.50%)
-                        </label>
-                        <label class="flex items-center text-sm text-gray-700">
-                            <input type="checkbox" id="chkPromoExtraPlus" value="6.5" class="mr-3"> Promo Extra+ (6.50%)
-                        </label>
-                        <label class="flex items-center text-sm text-gray-700">
-                            <input type="checkbox" id="chkSpaylater" value="2.5" class="mr-3"> SPaylater Extra (2.50%)
-                        </label>
-                        <label class="flex items-center text-sm text-gray-700">
-                            <input type="checkbox" id="chkAsuransi" value="0.5" class="mr-3"> Asuransi (0.50%)
-                        </label>
-                    </div>
-                    <div class="border-t border-blue-200 pt-3">
-                        <label class="block text-sm font-bold text-gray-800 mb-1">Komisi Affiliator (%)</label>
-                        <p class="text-xs text-gray-500 mb-1">Kosongkan (0) jika tidak memakai affiliate</p>
-                        <input type="number" step="0.1" id="komisiAffiliate" value="0" placeholder="Misal: 5 atau 10" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500 bg-white">
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3 mt-2">
-                    <div>
-                        <label class="block text-sm text-gray-600 mb-1">Biaya Pesanan (Rp)</label>
-                        <input type="number" id="biayaTetap" value="1250" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
-                    </div>
-                    <div>
-                        <label class="block text-sm text-gray-600 mb-1">Biaya Packing (Rp)</label>
-                        <input type="number" id="biayaPacking" value="1000" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
-                    </div>
-                </div>
-                
-                <button onclick="hitungROAS()" class="w-full bg-[#3b82f6] hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg mt-6 shadow-md transition duration-200">
-                    Hitung Target ROAS
-                </button>
-            </div>
-
-            <!-- Area Hasil -->
-            <div id="resultArea" class="hide mt-8 border-t pt-6 space-y-4">
-                
-                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm text-gray-700 space-y-2">
-                    <div class="flex justify-between"><span>Potongan Admin Utama:</span> <span id="resPotongan" class="font-semibold text-red-500"></span></div>
-                    <div class="flex justify-between"><span>Pot. Program & Affiliate:</span> <span id="resPotonganOpsional" class="font-semibold text-red-500"></span></div>
-                    <div class="flex justify-between font-bold border-t pt-2"><span>Total Beban Non-Iklan:</span> <span id="resTotalBeban"></span></div>
-                    <div class="flex justify-between font-bold text-green-700 text-base"><span>Margin Kotor (Profit kotor):</span> <span id="resMarginKotor"></span></div>
-                </div>
-
-                <!-- Box BEP -->
-                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 shadow-sm">
-                    <p class="text-xs font-bold text-blue-800 mb-1">TARGET ROAS BEP (TITIK IMPAS)</p>
-                    <div class="flex justify-between items-end">
-                        <span id="resRoasBEP" class="text-2xl font-extrabold text-blue-900"></span>
-                        <span class="text-sm font-bold text-gray-600">Profit: Rp0</span>
-                    </div>
-                    <p class="text-xs text-gray-600 mt-2">Ini batas bawah. Jika iklan mencatat ROAS di bawah angka ini = Boncos.</p>
-                </div>
-
-                <!-- Box Rekomendasi -->
-                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-                    <p class="text-xs font-bold text-gray-700 mb-1">REKOMENDASI TARGET ROAS</p>
-                    <div class="flex justify-between items-end">
-                        <span id="resRoasRekomen" class="text-2xl font-extrabold text-gray-900"></span>
-                        <span id="resProfitRekomen" class="text-sm font-bold text-green-600"></span>
-                    </div>
-                    <p class="text-xs text-gray-500 mt-2">Estimasi Target Profit Bersih: 20% dari harga jual.</p>
-                </div>
-
-                <!-- Tabel Simulasi -->
-                <div class="mt-6 border border-gray-200 rounded-lg overflow-hidden">
-                    <div class="bg-gray-100 p-3 border-b border-gray-200">
-                        <h3 class="text-sm font-bold text-gray-800">Simulasi Profit (10 Level ROAS)</h3>
-                    </div>
-                    <table class="w-full text-left text-xs text-gray-700 bg-white">
-                        <thead class="bg-gray-50 border-b border-gray-200">
-                            <tr>
-                                <th class="py-2 px-3">ROAS</th>
-                                <th class="py-2 px-3">Biaya Iklan</th>
-                                <th class="py-2 px-3">Profit Bersih</th>
-                            </tr>
-                        </thead>
-                        <tbody id="tableBody" class="divide-y divide-gray-100">
-                            <!-- Diisi oleh JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
-
-            </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="field-label" for="hpp">HPP / Modal</label>
+            <div class="field"><span class="unit">Rp</span><input type="number" min="0" id="hpp" value="30000"></div>
+          </div>
+          <div>
+            <label class="field-label" for="hargaJual">Harga Jual</label>
+            <div class="field"><span class="unit">Rp</span><input type="number" min="0" id="hargaJual" value="60000"></div>
+          </div>
         </div>
+
+        <div>
+          <label class="field-label" for="biayaAdmin">Biaya Admin Utama / Basic</label>
+          <div class="field"><input type="number" step="0.1" min="0" max="100" id="biayaAdmin" value="6.5"><span class="unit">%</span></div>
+        </div>
+
+        <div>
+          <p class="section-label">Program opsional platform</p>
+          <div class="flex flex-wrap gap-2">
+            <label class="chip"><input type="checkbox" id="chkGratisOngkir" value="7.5">Gratis Ongkir <b>7.5%</b></label>
+            <label class="chip"><input type="checkbox" id="chkPromoExtra" value="4.5">Promo Extra <b>4.5%</b></label>
+            <label class="chip"><input type="checkbox" id="chkPromoExtraPlus" value="6.5">Promo Extra+ <b>6.5%</b></label>
+            <label class="chip"><input type="checkbox" id="chkSpaylater" value="2.5">SPaylater <b>2.5%</b></label>
+            <label class="chip"><input type="checkbox" id="chkAsuransi" value="0.5">Asuransi <b>0.5%</b></label>
+          </div>
+          <div class="mt-3">
+            <label class="field-label" for="komisiAffiliate">Komisi Affiliator <span class="opacity-70">(0 jika tidak pakai)</span></label>
+            <div class="field"><input type="number" step="0.1" min="0" max="100" id="komisiAffiliate" value="0" placeholder="Misal: 5 atau 10"><span class="unit">%</span></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label class="field-label" for="biayaTetap">Biaya Pesanan</label>
+            <div class="field"><span class="unit">Rp</span><input type="number" min="0" id="biayaTetap" value="1250"></div>
+          </div>
+          <div>
+            <label class="field-label" for="biayaPacking">Biaya Packing</label>
+            <div class="field"><span class="unit">Rp</span><input type="number" min="0" id="biayaPacking" value="1000"></div>
+          </div>
+        </div>
+
+        <button id="btnHitung" type="button" onclick="mulaiHitung()" class="btn-primary">Hitung Target ROAS</button>
+
+        <div id="errorBanner" class="hide"></div>
+      </div>
+
+      <div id="resultArea" class="hide mt-7 pb-2 space-y-6">
+        <div>
+          <p class="section-label">Ringkasan per pesanan</p>
+          <div class="ledger">
+            <div class="row"><span>Potongan Admin Utama</span><span id="resPotongan" class="tnum negative"></span></div>
+            <div class="row"><span>Potongan Program &amp; Affiliate</span><span id="resPotonganOpsional" class="tnum negative"></span></div>
+            <div class="row total"><span>Total Beban Non-Iklan</span><span id="resTotalBeban" class="tnum"></span></div>
+            <div class="row total accent"><span>Margin Kotor</span><span id="resMarginKotor" class="tnum"></span></div>
+          </div>
+        </div>
+
+        <div class="hero-pair display">
+          <div class="hero-cell floor">
+            <p class="hero-label">Batas bawah (BEP)</p>
+            <p id="resRoasBEP" class="hero-num tnum"></p>
+            <p class="hero-sub">Di bawah ini = boncos</p>
+          </div>
+          <div class="hero-cell target">
+            <p class="hero-label">Target disarankan</p>
+            <p id="resRoasRekomen" class="hero-num tnum"></p>
+            <p id="resProfitRekomen" class="hero-sub tnum"></p>
+          </div>
+        </div>
+
+        <div>
+          <p class="section-label">Simulasi 10 level ROAS</p>
+          <table class="sim">
+            <thead>
+              <tr><th>ROAS</th><th>Biaya Iklan</th><th>Profit Bersih</th></tr>
+            </thead>
+            <tbody id="tableBody"></tbody>
+          </table>
+        </div>
+      </div>
     </div>
+  </div>
 
-    <script>
-        const formatRp = (angka) => {
-            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0, maximumFractionDigits: 0 }).format(angka);
-        }
+  <div id="guideBackdrop" class="sheet-backdrop hide">
+    <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="guideTitle">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div>
+          <h2 id="guideTitle" class="app-title display">Panduan Penggunaan</h2>
+          <p class="app-subtitle">Cara pakai &amp; istilah di kalkulator ini</p>
+        </div>
+        <button type="button" id="btnTutupPanduan" class="icon-btn ml-auto" onclick="tutupPanduan()" aria-label="Tutup panduan">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+      </div>
 
-        function hitungROAS() {
-            const hpp = parseFloat(document.getElementById('hpp').value) || 0;
-            const hargaJual = parseFloat(document.getElementById('hargaJual').value) || 0;
-            const biayaAdmin = parseFloat(document.getElementById('biayaAdmin').value) || 0;
-            const biayaTetap = parseFloat(document.getElementById('biayaTetap').value) || 0;
-            const biayaPacking = parseFloat(document.getElementById('biayaPacking').value) || 0;
+      <div class="sheet-body">
+        <details class="guide-item" open>
+          <summary>Apa itu ROAS &amp; BEP?
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </summary>
+          <div class="guide-content">
+            <div class="guide-term"><b>ROAS</b><span>Return on Ad Spend — omzet yang dihasilkan dari tiap Rupiah biaya iklan. ROAS 5x artinya tiap Rp1.000 biaya iklan mendatangkan Rp5.000 omzet.</span></div>
+            <div class="guide-term"><b>BEP</b><span>Break Even Point — level ROAS minimum. Di bawah angka ini, iklan bikin rugi setelah dikurangi HPP dan semua potongan marketplace.</span></div>
+            <div class="guide-term"><b>Margin Kotor</b><span>Sisa dari harga jual setelah HPP dan semua potongan platform, sebelum dipotong biaya iklan. Ini "kantong" yang dipakai buat bayar iklan dan jadi profit.</span></div>
+          </div>
+        </details>
 
-            // Hitung persentase program opsional yang dicentang
-            let totalPersenOpsional = 0;
-            if(document.getElementById('chkGratisOngkir').checked) totalPersenOpsional += parseFloat(document.getElementById('chkGratisOngkir').value);
-            if(document.getElementById('chkPromoExtra').checked) totalPersenOpsional += parseFloat(document.getElementById('chkPromoExtra').value);
-            if(document.getElementById('chkPromoExtraPlus').checked) totalPersenOpsional += parseFloat(document.getElementById('chkPromoExtraPlus').value);
-            if(document.getElementById('chkSpaylater').checked) totalPersenOpsional += parseFloat(document.getElementById('chkSpaylater').value);
-            if(document.getElementById('chkAsuransi').checked) totalPersenOpsional += parseFloat(document.getElementById('chkAsuransi').value);
+        <details class="guide-item">
+          <summary>Cara Mengisi Data
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </summary>
+          <div class="guide-content">
+            <ol class="guide-steps">
+              <li><b>HPP/Modal</b> — total biaya produksi atau beli produk per unit, belum termasuk ongkir.</li>
+              <li><b>Harga Jual</b> — harga yang dilihat pembeli di listing, sudah termasuk diskon kalau ada.</li>
+              <li><b>Biaya Admin</b> — persentase potongan admin basic dari marketplace, cek di Seller Center &gt; Info Toko.</li>
+              <li><b>Program Opsional</b> — centang yang aktif di tokomu. Ubah angka persennya kalau beda dari default yang tertera.</li>
+              <li><b>Komisi Affiliator</b> — isi kalau produk dipromosikan lewat affiliate atau live seller, kosongkan (0) kalau tidak.</li>
+              <li><b>Biaya Pesanan &amp; Packing</b> — nominal tetap dalam Rupiah per pesanan, bukan persentase.</li>
+            </ol>
+          </div>
+        </details>
 
-            // Tambahkan komisi affiliator
-            const komisiAffiliate = parseFloat(document.getElementById('komisiAffiliate').value) || 0;
-            totalPersenOpsional += komisiAffiliate;
+        <details class="guide-item">
+          <summary>Membaca Hasil
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </summary>
+          <div class="guide-content">
+            <div class="guide-term"><b>Ringkasan</b><span>Rincian semua potongan dan margin kotor per pesanan, sebelum biaya iklan masuk.</span></div>
+            <div class="guide-term"><b>Batas bawah</b><span>ROAS BEP — jangan pasang iklan dengan target di bawah angka ini.</span></div>
+            <div class="guide-term"><b>Target disarankan</b><span>ROAS yang menyisakan profit bersih sekitar 20% dari harga jual.</span></div>
+            <div class="guide-term"><b>Tabel simulasi</b><span>Proyeksi biaya iklan dan profit di 10 titik ROAS berbeda, mulai tepat di atas BEP.</span></div>
+          </div>
+        </details>
 
-            // Perhitungan Potongan
-            const potonganAdmin = hargaJual * (biayaAdmin / 100);
-            const potonganOpsional = hargaJual * (totalPersenOpsional / 100);
-            
-            const totalBeban = hpp + potonganAdmin + potonganOpsional + biayaTetap + biayaPacking;
-            const marginKotor = hargaJual - totalBeban;
+        <details class="guide-item">
+          <summary>Tips Praktis
+            <svg class="chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+          </summary>
+          <div class="guide-content">
+            <div class="guide-tip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <span>Selalu kasih jarak di atas ROAS BEP. Jangan pasang budget mepet di garis batas — sedikit saja ROAS turun, kamu langsung boncos.</span>
+            </div>
+            <div class="guide-tip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <span>Program opsional bisa menggeser BEP cukup jauh. Cek ulang tiap kali kampanye atau program platform berubah.</span>
+            </div>
+            <div class="guide-tip">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+              <span>Angka di kalkulator ini per pesanan/unit. Kalikan dengan volume pesanan harian untuk proyeksi omzet total.</span>
+            </div>
+          </div>
+        </details>
+      </div>
+    </div>
+  </div>
 
-            if (marginKotor <= 0) {
-                alert("Rugi sebelum ngiklan! Harga jual terlalu rendah atau potongan platform & HPP terlalu besar.");
-                return;
-            }
+<script>
+  const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', minimumFractionDigits:0, maximumFractionDigits:0 }).format(angka);
 
-            const roasBEP = hargaJual / marginKotor;
+  let isComputing = false;
 
-            const targetProfitMargin = 0.20; // 20%
-            const targetProfitRp = hargaJual * targetProfitMargin;
-            const sisaIklanUntukTarget = marginKotor - targetProfitRp;
-            
-            let roasRekomendasi = 0;
-            if(sisaIklanUntukTarget > 0) {
-                roasRekomendasi = hargaJual / sisaIklanUntukTarget;
-            }
+  // Panduan (bottom sheet)
+  function bukaPanduan(){
+    const backdrop = document.getElementById('guideBackdrop');
+    backdrop.classList.remove('hide');
+    document.body.style.overflow = 'hidden';
+    requestAnimationFrame(() => backdrop.classList.add('is-open'));
+  }
 
-            // Tampilkan ke DOM
-            document.getElementById('resPotongan').innerText = '-' + formatRp(potonganAdmin);
-            document.getElementById('resPotonganOpsional').innerText = '-' + formatRp(potonganOpsional);
-            document.getElementById('resTotalBeban').innerText = formatRp(totalBeban);
-            document.getElementById('resMarginKotor').innerText = formatRp(marginKotor);
-            
-            document.getElementById('resRoasBEP').innerText = roasBEP.toFixed(2) + 'x';
-            document.getElementById('resRoasRekomen').innerText = roasRekomendasi > 0 ? roasRekomendasi.toFixed(2) + 'x' : 'Sulit Dicapai';
-            document.getElementById('resProfitRekomen').innerText = roasRekomendasi > 0 ? '+' + formatRp(targetProfitRp) : 'Cek ulang HPP';
+  function tutupPanduan(){
+    const backdrop = document.getElementById('guideBackdrop');
+    backdrop.classList.remove('is-open');
+    document.body.style.overflow = '';
+    setTimeout(() => backdrop.classList.add('hide'), 300);
+  }
 
-            // Buat Tabel Simulasi
-            const tableBody = document.getElementById('tableBody');
-            tableBody.innerHTML = ''; 
-            
-            let currentRoas = roasBEP + 0.25;
-            
-            for (let i = 0; i < 10; i++) {
-                const biayaIklan = hargaJual / currentRoas;
-                const profit = marginKotor - biayaIklan;
-                const persentaseMargin = (profit / hargaJual) * 100;
+  document.getElementById('guideBackdrop').addEventListener('click', (e) => {
+    if (e.target.id === 'guideBackdrop') tutupPanduan();
+  });
 
-                const tr = document.createElement('tr');
-                tr.innerHTML = `
-                    <td class="py-3 px-3 font-semibold">${currentRoas.toFixed(2)}x</td>
-                    <td class="py-3 px-3 text-red-500">${formatRp(biayaIklan)}</td>
-                    <td class="py-3 px-3 text-green-600 font-bold">
-                        +${formatRp(profit)}
-                        <span class="block text-[10px] text-gray-500 font-normal">Margin: ${persentaseMargin.toFixed(1)}%</span>
-                    </td>
-                `;
-                tableBody.appendChild(tr);
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && document.getElementById('guideBackdrop').classList.contains('is-open')) tutupPanduan();
+  });
 
-                currentRoas += 0.25;
-            }
+  function mulaiHitung(){
+    if (isComputing) return;
+    const btn = document.getElementById('btnHitung');
+    const originalText = "Hitung Target ROAS";
 
-            document.getElementById('resultArea').classList.remove('hide');
-        }
-    </script>
+    isComputing = true;
+    btn.classList.add('is-computing');
+    btn.innerText = "Menghitung…";
+    document.getElementById('resultArea').classList.add('hide');
+
+    setTimeout(() => {
+      btn.classList.remove('is-computing');
+      btn.innerText = originalText;
+      isComputing = false;
+      hitungROAS();
+    }, 500);
+  }
+
+  // Ambil nilai numerik dari sebuah input dan pastikan tidak pernah negatif,
+  // walaupun user mengetik manual angka minus (atribut min="0" di HTML
+  // hanya mencegah panah spinner, bukan ketikan manual/paste).
+  function angkaAman(id, maks){
+    let v = parseFloat(document.getElementById(id).value);
+    if (isNaN(v)) v = 0;
+    if (v < 0) v = 0;
+    if (typeof maks === 'number' && v > maks) v = maks;
+    return v;
+  }
+
+  function tampilkanError(pesan){
+    const banner = document.getElementById('errorBanner');
+    banner.innerText = pesan;
+    banner.classList.remove('hide');
+    document.getElementById('resultArea').classList.add('hide');
+  }
+
+  function sembunyikanError(){
+    document.getElementById('errorBanner').classList.add('hide');
+  }
+
+  function hitungROAS(){
+    const hpp = angkaAman('hpp');
+    const hargaJual = angkaAman('hargaJual');
+    const biayaAdmin = angkaAman('biayaAdmin', 100);
+    const biayaTetap = angkaAman('biayaTetap');
+    const biayaPacking = angkaAman('biayaPacking');
+
+    if (hargaJual <= 0){
+      tampilkanError("Harga Jual harus diisi dan lebih besar dari Rp0 sebelum bisa dihitung.");
+      return;
+    }
+
+    let totalPersenOpsional = 0;
+    if(document.getElementById('chkGratisOngkir').checked) totalPersenOpsional += parseFloat(document.getElementById('chkGratisOngkir').value);
+    if(document.getElementById('chkPromoExtra').checked) totalPersenOpsional += parseFloat(document.getElementById('chkPromoExtra').value);
+    if(document.getElementById('chkPromoExtraPlus').checked) totalPersenOpsional += parseFloat(document.getElementById('chkPromoExtraPlus').value);
+    if(document.getElementById('chkSpaylater').checked) totalPersenOpsional += parseFloat(document.getElementById('chkSpaylater').value);
+    if(document.getElementById('chkAsuransi').checked) totalPersenOpsional += parseFloat(document.getElementById('chkAsuransi').value);
+
+    const komisiAffiliate = angkaAman('komisiAffiliate', 100);
+    totalPersenOpsional += komisiAffiliate;
+
+    const potonganAdmin = hargaJual * (biayaAdmin / 100);
+    const potonganOpsional = hargaJual * (totalPersenOpsional / 100);
+
+    const totalBeban = hpp + potonganAdmin + potonganOpsional + biayaTetap + biayaPacking;
+    const marginKotor = hargaJual - totalBeban;
+
+    if (marginKotor <= 0){
+      tampilkanError("Rugi sebelum ngiklan! Total HPP + semua potongan (Rp" + totalBeban.toLocaleString('id-ID') + ") lebih besar dari harga jual. Coba naikkan harga jual, atau kurangi HPP/program opsional yang dicentang.");
+      return;
+    }
+
+    sembunyikanError();
+
+    const roasBEP = hargaJual / marginKotor;
+
+    const targetProfitMargin = 0.20;
+    const targetProfitRp = hargaJual * targetProfitMargin;
+    const sisaIklanUntukTarget = marginKotor - targetProfitRp;
+
+    let roasRekomendasi = 0;
+    if (sisaIklanUntukTarget > 0){
+      roasRekomendasi = hargaJual / sisaIklanUntukTarget;
+    }
+
+    document.getElementById('resPotongan').innerText = '-' + formatRp(potonganAdmin);
+    document.getElementById('resPotonganOpsional').innerText = '-' + formatRp(potonganOpsional);
+    document.getElementById('resTotalBeban').innerText = formatRp(totalBeban);
+    document.getElementById('resMarginKotor').innerText = formatRp(marginKotor);
+
+    document.getElementById('resRoasBEP').innerText = roasBEP.toFixed(2) + 'x';
+    document.getElementById('resRoasRekomen').innerText = roasRekomendasi > 0 ? roasRekomendasi.toFixed(2) + 'x' : 'Sulit dicapai';
+    document.getElementById('resProfitRekomen').innerText = roasRekomendasi > 0 ? '+' + formatRp(targetProfitRp) : 'Cek ulang HPP';
+
+    const tableBody = document.getElementById('tableBody');
+    tableBody.innerHTML = '';
+
+    let currentRoas = roasBEP + 0.25;
+
+    for (let i = 0; i < 10; i++){
+      const biayaIklan = hargaJual / currentRoas;
+      const profit = marginKotor - biayaIklan;
+      const persentaseMargin = (profit / hargaJual) * 100;
+
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td class="tnum">${currentRoas.toFixed(2)}x</td>
+        <td class="tnum" style="color:var(--danger)">${formatRp(biayaIklan)}</td>
+        <td class="tnum" style="color:var(--accent);font-weight:600">
+          +${formatRp(profit)}
+          <span class="margin-sub">Margin: ${persentaseMargin.toFixed(1)}%</span>
+        </td>
+      `;
+      tableBody.appendChild(tr);
+
+      currentRoas += 0.25;
+    }
+
+    const resultArea = document.getElementById('resultArea');
+    resultArea.classList.remove('hide');
+    resultArea.classList.remove('reveal');
+    void resultArea.offsetWidth;
+    resultArea.classList.add('reveal');
+  }
+</script>
 </body>
 </html>
