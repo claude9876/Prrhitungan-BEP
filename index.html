@@ -469,12 +469,26 @@
 </script>
 
 <script>
-  // Mendaftarkan Service Worker untuk PWA
+  // Mendaftarkan Service Worker untuk PWA — dengan auto-update
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').then(() => {
+      navigator.serviceWorker.register('sw.js').then((reg) => {
         console.log('PWA Siap: Service Worker Terdaftar');
+
+        // Cek update tiap kali tab dibuka lagi (misal user balik dari app lain)
+        document.addEventListener('visibilitychange', () => {
+          if (document.visibilityState === 'visible') reg.update();
+        });
       });
+    });
+
+    // Begitu service worker baru resmi ambil alih, reload SEKALI otomatis
+    // supaya user langsung lihat versi terbaru — tanpa perlu hapus cache manual.
+    let sudahReload = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (sudahReload) return;
+      sudahReload = true;
+      window.location.reload();
     });
   }
 </script>
