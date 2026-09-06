@@ -126,6 +126,28 @@
   .guide-tip{ display:flex; gap:.55rem; align-items:flex-start; padding:.6rem .7rem; border-radius:.65rem; background:var(--accent-warm-soft); margin-bottom:.5rem; font-size:.82rem; color:var(--ink); line-height:1.5; }
   .guide-tip:last-child{ margin-bottom:0; }
   .guide-tip svg{ width:1rem; height:1rem; color:var(--accent-warm); flex-shrink:0; margin-top:.15rem; }
+
+  /* Iklan popup */
+  .ad-backdrop{ position:fixed; inset:0; background:rgba(28,35,33,.55); display:flex; align-items:center; justify-content:center; padding:1.25rem; z-index:60; opacity:0; pointer-events:none; transition:opacity .25s ease; }
+  .ad-backdrop.is-open{ opacity:1; pointer-events:auto; }
+
+  .ad-card{ width:100%; max-width:360px; background:var(--surface); border:1px solid var(--line); border-radius:1.1rem; box-shadow:0 20px 40px rgba(28,35,33,.18); overflow:hidden; position:relative; opacity:0; transform:translateY(18px) scale(.95); transition:opacity .38s cubic-bezier(.22,1,.36,1), transform .38s cubic-bezier(.22,1,.36,1); }
+  .ad-backdrop.is-open .ad-card{ opacity:1; transform:none; }
+  @media (prefers-reduced-motion:reduce){ .ad-backdrop, .ad-card{ transition:none; } }
+
+  .ad-banner{ height:120px; background:linear-gradient(135deg,var(--accent) 0%,#12735d 100%); display:flex; align-items:center; justify-content:center; }
+  .ad-banner svg{ width:2.75rem; height:2.75rem; color:rgba(255,255,255,.85); }
+
+  .ad-body{ padding:1.1rem 1.25rem 1.25rem; }
+  .ad-eyebrow{ font-size:.68rem; color:var(--accent-warm); font-weight:600; margin:0 0 .35rem; }
+  .ad-title{ font-size:1.05rem; font-weight:700; margin:0 0 .4rem; line-height:1.3; }
+  .ad-desc{ font-size:.83rem; color:var(--ink-muted); line-height:1.55; margin:0 0 1rem; }
+  .ad-cta{ display:block; width:100%; text-align:center; background:var(--accent); color:#fff; font-weight:600; font-size:.88rem; padding:.75rem 1rem; border-radius:.65rem; text-decoration:none; }
+  .ad-cta:hover{ background:#0a4a3c; }
+
+  .ad-close{ position:absolute; top:.65rem; right:.65rem; width:2rem; height:2rem; border-radius:999px; border:0; background:rgba(255,255,255,.92); color:var(--ink); display:flex; align-items:center; justify-content:center; cursor:pointer; font-size:.72rem; font-weight:600; }
+  .ad-close[disabled]{ cursor:default; color:var(--ink-muted); }
+  .ad-close svg{ width:1.05rem; height:1.05rem; }
 </style>
 </head>
 <body>
@@ -313,6 +335,23 @@
     </div>
   </div>
 
+  <div id="adBackdrop" class="ad-backdrop hide" role="dialog" aria-modal="true" aria-labelledby="adTitle">
+    <div class="ad-card">
+      <button id="adCloseBtn" class="ad-close" aria-label="Tutup iklan"></button>
+      <div class="ad-banner">
+        <!-- 🔧 Ganti dengan <img src="banner-kamu.jpg" style="width:100%;height:100%;object-fit:cover"> kalau punya gambar asli -->
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>
+      </div>
+      <div class="ad-body">
+        <p class="ad-eyebrow">IKLAN</p>
+        <h2 id="adTitle" class="ad-title display">Judul Iklan / Promosi Kamu</h2>
+        <p class="ad-desc">Ganti teks ini dengan pesan promosi, produk, atau info yang mau ditampilkan ke pengguna aplikasi.</p>
+        <!-- 🔧 Ganti href dengan tautan tujuan iklan -->
+        <a href="#" class="ad-cta">Lihat Selengkapnya</a>
+      </div>
+    </div>
+  </div>
+
 <script>
   const formatRp = (angka) => new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', minimumFractionDigits:0, maximumFractionDigits:0 }).format(angka);
 
@@ -491,6 +530,71 @@
       window.location.reload();
     });
   }
+</script>
+
+<script>
+  // Iklan popup — animasi masuk halus + opsi close langsung atau tunggu 5 detik
+  const AD_CLOSE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>';
+  let adCountdownTimer = null;
+
+  // mode: 'langsung' -> tombol close aktif seketika
+  //       'tunggu5detik' -> tombol close nonaktif & hitung mundur 5..1 dulu
+  function tampilkanIklan(mode){
+    const backdrop = document.getElementById('adBackdrop');
+    const closeBtn = document.getElementById('adCloseBtn');
+
+    clearInterval(adCountdownTimer);
+    document.body.style.overflow = 'hidden';
+    backdrop.classList.remove('hide');
+    requestAnimationFrame(() => backdrop.classList.add('is-open'));
+
+    if (mode === 'langsung'){
+      closeBtn.disabled = false;
+      closeBtn.innerHTML = AD_CLOSE_ICON;
+      return;
+    }
+
+    let sisaDetik = 5;
+    closeBtn.disabled = true;
+    closeBtn.innerText = sisaDetik;
+    adCountdownTimer = setInterval(() => {
+      sisaDetik -= 1;
+      if (sisaDetik <= 0){
+        clearInterval(adCountdownTimer);
+        closeBtn.disabled = false;
+        closeBtn.innerHTML = AD_CLOSE_ICON;
+      } else {
+        closeBtn.innerText = sisaDetik;
+      }
+    }, 1000);
+  }
+
+  function tutupIklan(){
+    const backdrop = document.getElementById('adBackdrop');
+    const closeBtn = document.getElementById('adCloseBtn');
+    if (closeBtn.disabled) return; // masih dalam masa tunggu, abaikan klik/escape/backdrop
+
+    clearInterval(adCountdownTimer);
+    backdrop.classList.remove('is-open');
+    document.body.style.overflow = '';
+    setTimeout(() => backdrop.classList.add('hide'), 300); // tunggu animasi keluar selesai
+    sessionStorage.setItem('iklanSudahDitutup', '1');
+  }
+
+  document.getElementById('adCloseBtn').addEventListener('click', tutupIklan);
+  document.getElementById('adBackdrop').addEventListener('click', (e) => {
+    if (e.target.id === 'adBackdrop') tutupIklan();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') tutupIklan();
+  });
+
+  // Muncul otomatis sekali per sesi browser, ~1 detik setelah halaman siap.
+  // 🔧 Ganti 'tunggu5detik' jadi 'langsung' kalau mau tombol close bisa diklik seketika.
+  window.addEventListener('load', () => {
+    if (sessionStorage.getItem('iklanSudahDitutup')) return;
+    setTimeout(() => tampilkanIklan('tunggu5detik'), 1000);
+  });
 </script>
 </body>
 </html>
