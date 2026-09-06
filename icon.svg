@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <!-- Background Hijau Tua -->
+  <rect width="512" height="512" rx="115" fill="#0E5C4A"/>
+  
+  <!-- Grafik Batang -->
+  <rect x="130" y="320" width="60" height="60" rx="16" fill="#A9702C" opacity="0.9"/>
+  <rect x="226" y="240" width="60" height="140" rx="16" fill="#E4EFEB" opacity="0.6"/>
+  <rect x="322" y="130" width="60" height="250" rx="16" fill="#F4E9D7"/>
+  
+  <!-- Garis Tren Naik -->
+  <path d="M160 350 L256 270 L352 160" fill="none" stroke="#FFFFFF" stroke-width="32" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="352" cy="160" r="24" fill="#FFFFFF"/>
+</svg>
