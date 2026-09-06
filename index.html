@@ -8,6 +8,9 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0E5C4A">
+<link rel="apple-touch-icon" href="icon.svg">
 <style>
   :root{
     --bg:#F5F4EF;
@@ -457,6 +460,17 @@
     resultArea.classList.remove('reveal');
     void resultArea.offsetWidth;
     resultArea.classList.add('reveal');
+  }
+</script>
+
+<script>
+  // Mendaftarkan Service Worker untuk PWA
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('sw.js').then(() => {
+        console.log('PWA Siap: Service Worker Terdaftar');
+      });
+    });
   }
 </script>
 </body>
