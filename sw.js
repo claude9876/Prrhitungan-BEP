@@ -16,7 +16,7 @@
    manual. Semuanya berjalan otomatis di background.
    ========================================================================== */
 
-const CACHE_VERSION = 'v1'; // <-- ubah angka ini tiap kali deploy versi baru
+const CACHE_VERSION = 'v2'; // <-- ubah angka ini tiap kali deploy versi baru
 const CACHE_NAME = `roas-calculator-${CACHE_VERSION}`;
 
 // ------------------------------------------------------------------------
