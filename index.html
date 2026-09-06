@@ -9,6 +9,8 @@
         body { background-color: #f3f4f6; }
         .mobile-container { max-width: 480px; margin: 0 auto; background-color: #ffffff; min-height: 100vh; box-shadow: 0 0 10px rgba(0,0,0,0.1); }
         .hide { display: none; }
+        /* Custom checkbox style */
+        input[type="checkbox"] { width: 1.25rem; height: 1.25rem; accent-color: #3b82f6; cursor: pointer; }
     </style>
 </head>
 <body>
@@ -22,92 +24,112 @@
         <div class="p-5">
             <h2 class="text-xl font-bold mb-4 text-gray-800 text-center">Kalkulator ROAS Marketplace</h2>
 
-            <!-- Panduan Singkat -->
-            <div class="bg-gray-100 p-4 rounded-lg mb-6 text-sm text-gray-600">
-                <p class="font-bold mb-2">💡 Panduan Singkat:</p>
-                <ul class="list-disc pl-4 space-y-1">
-                    <li><strong>ROAS (Return on Ad Spend):</strong> Rasio Omzet Iklan dibagi Biaya Iklan.</li>
-                    <li><strong>Beban Non-Iklan:</strong> Total modal produk (HPP) + potongan platform + operasional.</li>
-                    <li><strong>ROAS BEP:</strong> Batas impas. Di bawah BEP = boncos, di atas BEP = profit.</li>
-                </ul>
-            </div>
-
             <!-- Form Input -->
             <div class="space-y-4">
                 <div>
                     <label class="block text-sm text-gray-600 mb-1">Nama Produk</label>
                     <input type="text" id="namaProduk" value="Vest outer" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
                 </div>
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">HPP / Modal Pokok (Rp)</label>
-                    <input type="number" id="hpp" value="30000" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">Harga Jual (Rp)</label>
-                    <input type="number" id="hargaJual" value="60000" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">Biaya Admin Marketplace (%)</label>
-                    <input type="number" step="0.1" id="biayaAdmin" value="8.5" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">Biaya Pesanan Tetap (Rp)</label>
-                    <input type="number" id="biayaTetap" value="1250" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
-                </div>
-                <div>
-                    <label class="block text-sm text-gray-600 mb-1">Biaya Packing & Operasional (Rp)</label>
-                    <input type="number" id="biayaPacking" value="1000" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">HPP / Modal (Rp)</label>
+                        <input type="number" id="hpp" value="30000" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Harga Jual (Rp)</label>
+                        <input type="number" id="hargaJual" value="60000" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
+                    </div>
                 </div>
                 
-                <button onclick="hitungROAS()" class="w-full bg-[#3b82f6] hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg mt-4 transition duration-200">
+                <div>
+                    <label class="block text-sm text-gray-600 mb-1">Biaya Admin Utama / Basic (%)</label>
+                    <input type="number" step="0.1" id="biayaAdmin" value="6.5" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
+                </div>
+
+                <!-- Bagian Biaya Opsional Baru -->
+                <div class="bg-blue-50 border border-blue-200 p-3 rounded-lg mt-2">
+                    <label class="block text-sm font-bold text-gray-800 mb-2">Program Opsional Platform (Centang jika ikut):</label>
+                    <div class="space-y-2 mb-3">
+                        <label class="flex items-center text-sm text-gray-700">
+                            <input type="checkbox" id="chkGratisOngkir" value="7.5" class="mr-3"> Gratis Ongkir Extra (7.50%)
+                        </label>
+                        <label class="flex items-center text-sm text-gray-700">
+                            <input type="checkbox" id="chkPromoExtra" value="4.5" class="mr-3"> Promo Extra (4.50%)
+                        </label>
+                        <label class="flex items-center text-sm text-gray-700">
+                            <input type="checkbox" id="chkPromoExtraPlus" value="6.5" class="mr-3"> Promo Extra+ (6.50%)
+                        </label>
+                        <label class="flex items-center text-sm text-gray-700">
+                            <input type="checkbox" id="chkSpaylater" value="2.5" class="mr-3"> SPaylater Extra (2.50%)
+                        </label>
+                        <label class="flex items-center text-sm text-gray-700">
+                            <input type="checkbox" id="chkAsuransi" value="0.5" class="mr-3"> Asuransi (0.50%)
+                        </label>
+                    </div>
+                    <div class="border-t border-blue-200 pt-3">
+                        <label class="block text-sm font-bold text-gray-800 mb-1">Komisi Affiliator (%)</label>
+                        <p class="text-xs text-gray-500 mb-1">Kosongkan (0) jika tidak memakai affiliate</p>
+                        <input type="number" step="0.1" id="komisiAffiliate" value="0" placeholder="Misal: 5 atau 10" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500 bg-white">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-2 gap-3 mt-2">
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Biaya Pesanan (Rp)</label>
+                        <input type="number" id="biayaTetap" value="1250" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm text-gray-600 mb-1">Biaya Packing (Rp)</label>
+                        <input type="number" id="biayaPacking" value="1000" class="w-full border border-gray-300 rounded p-2 focus:outline-none focus:border-blue-500">
+                    </div>
+                </div>
+                
+                <button onclick="hitungROAS()" class="w-full bg-[#3b82f6] hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg mt-6 shadow-md transition duration-200">
                     Hitung Target ROAS
                 </button>
             </div>
 
-            <!-- Area Hasil (Awalnya Disembunyikan) -->
+            <!-- Area Hasil -->
             <div id="resultArea" class="hide mt-8 border-t pt-6 space-y-4">
                 
-                <div class="text-sm text-gray-700 space-y-1">
-                    <div class="flex justify-between"><span>Potongan Admin Platform:</span> <span id="resPotongan" class="font-semibold"></span></div>
-                    <div class="flex justify-between"><span>Total Beban Non-Iklan:</span> <span id="resTotalBeban" class="font-semibold"></span></div>
-                    <div class="flex justify-between"><span>Margin Kotor per Unit:</span> <span id="resMarginKotor" class="font-semibold"></span></div>
+                <div class="bg-gray-50 p-3 rounded-lg border border-gray-200 text-sm text-gray-700 space-y-2">
+                    <div class="flex justify-between"><span>Potongan Admin Utama:</span> <span id="resPotongan" class="font-semibold text-red-500"></span></div>
+                    <div class="flex justify-between"><span>Pot. Program & Affiliate:</span> <span id="resPotonganOpsional" class="font-semibold text-red-500"></span></div>
+                    <div class="flex justify-between font-bold border-t pt-2"><span>Total Beban Non-Iklan:</span> <span id="resTotalBeban"></span></div>
+                    <div class="flex justify-between font-bold text-green-700 text-base"><span>Margin Kotor (Profit kotor):</span> <span id="resMarginKotor"></span></div>
                 </div>
 
                 <!-- Box BEP -->
-                <div class="bg-blue-50 p-4 rounded-lg border border-blue-100">
+                <div class="bg-blue-50 p-4 rounded-lg border border-blue-200 shadow-sm">
                     <p class="text-xs font-bold text-blue-800 mb-1">TARGET ROAS BEP (TITIK IMPAS)</p>
                     <div class="flex justify-between items-end">
                         <span id="resRoasBEP" class="text-2xl font-extrabold text-blue-900"></span>
-                        <span class="text-sm text-gray-500">Profit: Rp0 (0%)</span>
+                        <span class="text-sm font-bold text-gray-600">Profit: Rp0</span>
                     </div>
-                    <p class="text-xs text-gray-500 mt-2">Batas minimal efektivitas iklan agar tidak merugi.</p>
+                    <p class="text-xs text-gray-600 mt-2">Ini batas bawah. Jika iklan mencatat ROAS di bawah angka ini = Boncos.</p>
                 </div>
 
                 <!-- Box Rekomendasi -->
-                <div class="bg-gray-50 p-4 rounded-lg border border-gray-200">
+                <div class="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
                     <p class="text-xs font-bold text-gray-700 mb-1">REKOMENDASI TARGET ROAS</p>
                     <div class="flex justify-between items-end">
                         <span id="resRoasRekomen" class="text-2xl font-extrabold text-gray-900"></span>
                         <span id="resProfitRekomen" class="text-sm font-bold text-green-600"></span>
                     </div>
-                    <p class="text-xs text-gray-500 mt-2">Estimasi Profit Bersih: 20.0% dari harga jual.</p>
-                </div>
-
-                <!-- Box Ringkasan -->
-                <div class="bg-gray-50 p-3 rounded border text-sm text-gray-700 font-medium">
-                    Titik Impas (BEP): ROAS <span id="resRingkasanBEP" class="font-bold"></span> menghasilkan profit Rp0 (0%).
+                    <p class="text-xs text-gray-500 mt-2">Estimasi Target Profit Bersih: 20% dari harga jual.</p>
                 </div>
 
                 <!-- Tabel Simulasi -->
-                <div class="mt-6">
-                    <h3 class="text-sm font-bold text-gray-800 mb-2">Simulasi Profit 10 Level ROAS di Atas BEP:</h3>
-                    <table class="w-full text-left text-xs text-gray-700">
-                        <thead class="border-b border-gray-300">
+                <div class="mt-6 border border-gray-200 rounded-lg overflow-hidden">
+                    <div class="bg-gray-100 p-3 border-b border-gray-200">
+                        <h3 class="text-sm font-bold text-gray-800">Simulasi Profit (10 Level ROAS)</h3>
+                    </div>
+                    <table class="w-full text-left text-xs text-gray-700 bg-white">
+                        <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th class="py-2">ROAS</th>
-                                <th class="py-2">Biaya Iklan</th>
-                                <th class="py-2">Profit (Rp)</th>
-                                <th class="py-2">Margin (%)</th>
+                                <th class="py-2 px-3">ROAS</th>
+                                <th class="py-2 px-3">Biaya Iklan</th>
+                                <th class="py-2 px-3">Profit Bersih</th>
                             </tr>
                         </thead>
                         <tbody id="tableBody" class="divide-y divide-gray-100">
@@ -126,52 +148,60 @@
         }
 
         function hitungROAS() {
-            // Ambil Nilai Input
             const hpp = parseFloat(document.getElementById('hpp').value) || 0;
             const hargaJual = parseFloat(document.getElementById('hargaJual').value) || 0;
             const biayaAdmin = parseFloat(document.getElementById('biayaAdmin').value) || 0;
             const biayaTetap = parseFloat(document.getElementById('biayaTetap').value) || 0;
             const biayaPacking = parseFloat(document.getElementById('biayaPacking').value) || 0;
 
-            // Perhitungan Dasar
+            // Hitung persentase program opsional yang dicentang
+            let totalPersenOpsional = 0;
+            if(document.getElementById('chkGratisOngkir').checked) totalPersenOpsional += parseFloat(document.getElementById('chkGratisOngkir').value);
+            if(document.getElementById('chkPromoExtra').checked) totalPersenOpsional += parseFloat(document.getElementById('chkPromoExtra').value);
+            if(document.getElementById('chkPromoExtraPlus').checked) totalPersenOpsional += parseFloat(document.getElementById('chkPromoExtraPlus').value);
+            if(document.getElementById('chkSpaylater').checked) totalPersenOpsional += parseFloat(document.getElementById('chkSpaylater').value);
+            if(document.getElementById('chkAsuransi').checked) totalPersenOpsional += parseFloat(document.getElementById('chkAsuransi').value);
+
+            // Tambahkan komisi affiliator
+            const komisiAffiliate = parseFloat(document.getElementById('komisiAffiliate').value) || 0;
+            totalPersenOpsional += komisiAffiliate;
+
+            // Perhitungan Potongan
             const potonganAdmin = hargaJual * (biayaAdmin / 100);
-            const totalBeban = hpp + potonganAdmin + biayaTetap + biayaPacking;
+            const potonganOpsional = hargaJual * (totalPersenOpsional / 100);
+            
+            const totalBeban = hpp + potonganAdmin + potonganOpsional + biayaTetap + biayaPacking;
             const marginKotor = hargaJual - totalBeban;
 
             if (marginKotor <= 0) {
-                alert("Harga jual terlalu rendah atau HPP terlalu tinggi. Margin kotor negatif/nol.");
+                alert("Rugi sebelum ngiklan! Harga jual terlalu rendah atau potongan platform & HPP terlalu besar.");
                 return;
             }
 
-            // Hitung BEP
             const roasBEP = hargaJual / marginKotor;
 
-            // Hitung Rekomendasi (Asumsi target profit 20%)
-            const targetProfitMargin = 0.20;
+            const targetProfitMargin = 0.20; // 20%
             const targetProfitRp = hargaJual * targetProfitMargin;
             const sisaIklanUntukTarget = marginKotor - targetProfitRp;
-            let roasRekomendasi = 0;
             
+            let roasRekomendasi = 0;
             if(sisaIklanUntukTarget > 0) {
                 roasRekomendasi = hargaJual / sisaIklanUntukTarget;
-            } else {
-                roasRekomendasi = 0; // Tidak mungkin capai margin 20%
             }
 
             // Tampilkan ke DOM
-            document.getElementById('resPotongan').innerText = formatRp(potonganAdmin);
+            document.getElementById('resPotongan').innerText = '-' + formatRp(potonganAdmin);
+            document.getElementById('resPotonganOpsional').innerText = '-' + formatRp(potonganOpsional);
             document.getElementById('resTotalBeban').innerText = formatRp(totalBeban);
             document.getElementById('resMarginKotor').innerText = formatRp(marginKotor);
             
             document.getElementById('resRoasBEP').innerText = roasBEP.toFixed(2) + 'x';
-            document.getElementById('resRingkasanBEP').innerText = roasBEP.toFixed(2) + 'x';
-            
-            document.getElementById('resRoasRekomen').innerText = roasRekomendasi > 0 ? roasRekomendasi.toFixed(2) + 'x' : 'N/A';
-            document.getElementById('resProfitRekomen').innerText = '+' + formatRp(targetProfitRp);
+            document.getElementById('resRoasRekomen').innerText = roasRekomendasi > 0 ? roasRekomendasi.toFixed(2) + 'x' : 'Sulit Dicapai';
+            document.getElementById('resProfitRekomen').innerText = roasRekomendasi > 0 ? '+' + formatRp(targetProfitRp) : 'Cek ulang HPP';
 
-            // Buat Tabel Simulasi (Mulai dari BEP + 0.25)
+            // Buat Tabel Simulasi
             const tableBody = document.getElementById('tableBody');
-            tableBody.innerHTML = ''; // Clear tabel sebelumnya
+            tableBody.innerHTML = ''; 
             
             let currentRoas = roasBEP + 0.25;
             
@@ -182,17 +212,18 @@
 
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="py-2 font-semibold">${currentRoas.toFixed(2)}x</td>
-                    <td class="py-2">${formatRp(biayaIklan)}</td>
-                    <td class="py-2 text-green-600 font-semibold">+${formatRp(profit)}</td>
-                    <td class="py-2">${persentaseMargin.toFixed(1)}%</td>
+                    <td class="py-3 px-3 font-semibold">${currentRoas.toFixed(2)}x</td>
+                    <td class="py-3 px-3 text-red-500">${formatRp(biayaIklan)}</td>
+                    <td class="py-3 px-3 text-green-600 font-bold">
+                        +${formatRp(profit)}
+                        <span class="block text-[10px] text-gray-500 font-normal">Margin: ${persentaseMargin.toFixed(1)}%</span>
+                    </td>
                 `;
                 tableBody.appendChild(tr);
 
-                currentRoas += 0.25; // Increment 0.25x setiap baris
+                currentRoas += 0.25;
             }
 
-            // Tampilkan Area Hasil
             document.getElementById('resultArea').classList.remove('hide');
         }
     </script>
